@@ -37,14 +37,13 @@ RUN cd /tmp && \
 
 # Get VOD module
 RUN cd /tmp && \
-  wget https://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz && \
+  curl -OLs http://github.com/kaltura/nginx-vod-module/archive/1.24.tar.gz && \
   tar zxf 1.24.tar.gz && rm 1.24.tar.gz
 
 # Get nginx-rtmp module.
 RUN cd /tmp && \
-  wget https://github.com/arut/nginx-rtmp-module/archive/v1.2.1.tar.gz && \
-#  wget https://github.com/arut/nginx-rtmp-module/archive/${NGINX_RTMP_VERSION}.tar.gz && \
-  tar zxf v${NGINX_RTMP_VERSION}.tar.gz && rm v${NGINX_RTMP_VERSION}.tar.gz
+ curl -OLs https://github.com/arut/nginx-rtmp-module/archive/v1.2.1.tar.gz && \
+ tar zxf v${NGINX_RTMP_VERSION}.tar.gz && rm v${NGINX_RTMP_VERSION}.tar.gz
 
 # Compile nginx with nginx-rtmp module.
 RUN cd /tmp/nginx-${NGINX_VERSION} && \
@@ -72,6 +71,7 @@ ARG MAKEFLAGS="-j4"
 RUN apk add --update \
   build-base \
   coreutils \
+  curl \
   freetype-dev \
   lame-dev \
   libogg-dev \
@@ -95,7 +95,7 @@ RUN apk add --update fdk-aac-dev
 
 # Get FFmpeg source.
 RUN cd /tmp/ && \
-  wget http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
+  curl -OLs http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
   tar zxf ffmpeg-${FFMPEG_VERSION}.tar.gz && rm ffmpeg-${FFMPEG_VERSION}.tar.gz
 
 # Compile ffmpeg.
@@ -138,6 +138,7 @@ LABEL MAINTAINER Alfred Gutierrez <alf.g.jr@gmail.com>
 RUN apk add --update \
   ca-certificates \
   openssl \
+  curl \
   pcre \
   lame \
   libogg \
@@ -157,11 +158,12 @@ COPY --from=build-ffmpeg /usr/lib/libfdk-aac.so.2 /usr/lib/libfdk-aac.so.2
 
 # Add NGINX config and static files.
 ADD nginx.conf /opt/nginx/nginx.conf
-RUN mkdir -p /opt/data && mkdir /www
+RUN mkdir -p /opt/data && mkdir /www && mkdir /videos
+RUN cd /videos && curl -L http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4 --output sample.mp4
 ADD static /www/static
 
 EXPOSE 1935
 EXPOSE 80
+EXPOSE 443
 
 CMD ["/opt/nginx/sbin/nginx"]
-
